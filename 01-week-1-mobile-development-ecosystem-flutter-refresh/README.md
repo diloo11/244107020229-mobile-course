@@ -1,23 +1,12 @@
-<<<<<<< HEAD
-# my_first_app
+1. flutter doctor checklist verification
+![alt text](screenshot/flutter_doctor.png)
+2. flutter devices checklist verification
+![alt text](screenshot/flutter_devices.png)
+3. ![alt text](screenshot/UI.png)
+4. the difference between hot reload and hot restart is hot reload load the new code to the virtual machine and rerun build function from widget that changed, if hot restart is restart the whole application and delete the running app
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-=======
-# 244107020229-mobile-course
->>>>>>> ee305b22bcc4e241993a571b4fdfce1924526fc4
-
+Reflective
+1. Native development is more appropriate when an app requires high performance, platform-specific features, or deep integration with the operating system.
+2. State changes update the widget tree, causing Flutter to rebuild the affected widgets and update the UI declaratively based on the new state.
+3. Small commits with clear messages make changes easier to track, review, and collaborate on, while also showing good development practices in a portfolio.
 
