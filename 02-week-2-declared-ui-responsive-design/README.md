@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-# my_first_app
+# week_2
 
 A new Flutter project.
 
@@ -16,8 +15,3 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
-=======
-# 244107020229-mobile-course
->>>>>>> ee305b22bcc4e241993a571b4fdfce1924526fc4
-
-
