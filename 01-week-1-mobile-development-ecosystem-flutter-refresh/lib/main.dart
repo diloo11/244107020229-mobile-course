@@ -18,6 +18,8 @@ class MyApp extends StatelessWidget {
               SizedBox(height: 16),
               Text('Dil-Awar Harun El Rashid', style: TextStyle(fontSize: 24)),
               Text('Pemrograman Mobile — Minggu 1'),
+              Text('244107020229'),
+              Text('Hobby Basketball'),
             ],
           ),
         ),
