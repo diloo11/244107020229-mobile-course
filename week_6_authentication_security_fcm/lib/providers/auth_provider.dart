@@ -1,3 +1,11 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../data/auth_repository.dart';
+import '../data/token_store.dart';
+
+// Asumsi provider dependency injection sudah dibuat:
+final tokenStoreProvider = Provider((ref) => TokenStore());
+final authRepositoryProvider = Provider((ref) => AuthRepository());
+
 final authStateProvider =
     AsyncNotifierProvider<AuthNotifier, bool>(AuthNotifier.new);
 
