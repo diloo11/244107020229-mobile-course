@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="week_7_clean_architecture"
+        android:label="week_6_authentication_security_fcm"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

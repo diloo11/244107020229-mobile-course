@@ -1,122 +1,168 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'core/auth_provider.dart';
+import 'features/auth/login_page.dart';
+import 'features/home/home_page.dart';
+import 'features/announcements/announcement_page.dart';
+
+// ============================================================================
+// 1. BACKGROUND HANDLER (WAJIB TOP-LEVEL FUNCTION)
+// ============================================================================
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Hanya simpan/catat ringan di sini, navigasi ditangani saat banner diklik.
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+// Inisialisasi plugin Local Notifications untuk tampilan Foreground
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inisialisasi Firebase
+  await Firebase.initializeApp();
+
+  // Mendaftarkan background message handler
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // Inisialisasi Local Notification Channel untuk Android
+  const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const initSettings = InitializationSettings(android: androidInit);
+  await flutterLocalNotificationsPlugin.initialize(
+    settings: initSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse response) {
+      if (response.payload != null) {
+        // Digunakan jika user mengklik banner notifikasi lokal saat foreground
+        rootNavigatorKey.currentContext?.go(response.payload!);
+      }
+    },
+  );
+
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
+}
+
+// Navigator key global agar bisa berpindah rute tanpa butuh BuildContext di FCM listener
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
+
+// Provider untuk GoRouter agar dapat memantau authStateProvider
+final routerProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authStateProvider);
+  final loggedIn = authState.value ?? false;
+
+  return GoRouter(
+    navigatorKey: rootNavigatorKey,
+    redirect: (context, state) {
+      final goingLogin = state.matchedLocation == '/login';
+
+      if (!loggedIn && !goingLogin) return '/login';
+      if (loggedIn && goingLogin) return '/';
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginPage(),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const HomePage(),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+      GoRoute(
+        path: '/pengumuman/:id',
+        builder: (context, state) => AnnouncementPage(
+          id: state.pathParameters['id'] ?? '',
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+    ],
+  );
+});
+
+class MyApp extends ConsumerStatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    _setupFCM();
+  }
+
+  // ============================================================================
+  // 2. PENANGANAN 3 APP STATE & TOPIC SUBSCRIBING
+  // ============================================================================
+  Future<void> _setupFCM() async {
+    final messaging = FirebaseMessaging.instance;
+
+    // Minta Izin Notifikasi (Wajib untuk Android 13+)
+    await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    // Subscribe ke Topik untuk Broadcast Pengumuman Kampus
+    await messaging.subscribeToTopic('pengumuman-kampus');
+
+    // STATE 1: FOREGROUND (Aplikasi terbuka aktif)
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      final route = message.data['route'] ?? '/';
+      const androidDetails = AndroidNotificationDetails(
+        'pengumuman_channel',
+        'Pengumuman Kampus',
+        importance: Importance.high,
+        priority: Priority.high,
+      );
+
+      // Tampilkan banner notifikasi lokal secara manual
+      await flutterLocalNotificationsPlugin.show(
+        id: message.hashCode,
+        title: message.notification?.title ?? 'Pengumuman Baru',
+        body: message.notification?.body ?? '',
+        notificationDetails: const NotificationDetails(android: androidDetails),
+        payload: route,
+      );
+    });
+
+    // STATE 2: BACKGROUND (Aplikasi di-minimize, banner diklik user)
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      final route = message.data['route'] ?? '/';
+      if (mounted) {
+        ref.read(routerProvider).go(route);
+      }
+    });
+
+    // STATE 3: TERMINATED (Aplikasi mati/ditutup paksa, dibuka lewat banner)
+    final initialMessage = await messaging.getInitialMessage();
+    if (initialMessage != null) {
+      final route = initialMessage.data['route'] ?? '/';
+      if (mounted) {
+        ref.read(routerProvider).go(route);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final router = ref.watch(routerProvider);
+
+    return MaterialApp.router(
+      title: 'Campus Notify',
+      debugShowCheckedModeBanner: false,
+      routerConfig: router,
     );
   }
 }
